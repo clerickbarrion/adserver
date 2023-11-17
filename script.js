@@ -1,7 +1,7 @@
 // github git api
 import { Octokit } from "https://esm.sh/@octokit/core"
 const octokit = new Octokit({
-    auth: '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'
+    auth: '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'
 });
 
 // buttons and displays
