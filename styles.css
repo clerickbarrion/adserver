@@ -1,0 +1,97 @@
+@font-face {
+  font-family: Arcade;
+  src: url(font/ARCADECLASSIC.TTF);
+}
+html {
+  height: 100%;
+  font-size: 2rem;
+  font-family: Arcade;
+}
+
+body {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  height: 100%;
+  margin: 0;
+  background-color: black;
+  color: white;
+}
+
+#start-screen {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background-color: black;
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+#start-screen label {
+  font-size: 4rem;
+}
+#start-screen input {
+  width: 43%;
+  font-size: 2rem;
+  font-family: Arcade;
+}
+
+nav {
+  display: flex;
+  justify-content: center;
+}
+
+h1 {
+  margin: auto;
+}
+
+mark {
+  background-color: inherit;
+  color: white;
+}
+
+main {
+  display: flex;
+  justify-content: space-evenly;
+}
+main #controls, main #leaderboard {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  background-color: lavender;
+  height: -moz-fit-content;
+  height: fit-content;
+  border: 3px solid red;
+  padding: 5px;
+  color: black;
+  max-height: 60%;
+  overflow: scroll;
+}
+main #controls h2, main #leaderboard h2 {
+  text-align: center;
+}
+main #controls p, main #leaderboard p {
+  margin: 10px;
+}
+main #controls #play-again, main #leaderboard #play-again {
+  display: none;
+  font-size: 2rem;
+  color: white;
+  background-color: black;
+  font-family: Arcade;
+}
+main #controls li, main #leaderboard li {
+  padding: 0;
+  text-align: center;
+}
+main canvas {
+  background-image: url("images/background.png");
+  background-position: center;
+  background-size: cover;
+  border: 1px solid black;
+}
+
+#player, #astroid {
+  display: none;
+}/*# sourceMappingURL=styles.css.map */

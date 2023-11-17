@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Astroid Destroyer</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="icon" href="images/player.png">
+</head>
+<body>
+    <section id="start-screen">
+        <label for="username">Enter Your Name</label>
+        <input type="text" id="username" required>
+    </section>
+    <nav>
+        <h1>Health: <mark id='health'>100</mark></h1>
+        <h1 id="title">Astroid Destroyer</h1>
+        <h1>Score: <mark id="score">0</mark></h1>
+    </nav>
+    <main>
+        <div id="controls">
+            <h2>Controls</h2>
+            <p>
+                Up Arrow: Move up <br>
+                Down Arrow: Move down <br>
+                Spacebar: Shoot
+            </p>
+            <button id="play-again">Play Again</button>
+        </div>
+        <canvas id="canvas"></canvas>
+        <div id="leaderboard">
+            <h2>Leaderboard</h2>
+            <ol id="places">
+            </ol>
+        </div>
+    </main>
+    <footer></footer>
+    <script type='module'src="script.js"></script>
+    <img id="player" src="images/player.png" width="120" height="190">
+    <img id="astroid" src="images/astroid.png">
+</body>
+</html>
