@@ -65,7 +65,7 @@ main #controls, main #leaderboard {
   border: 3px solid red;
   padding: 5px;
   color: black;
-  max-height: 60%;
+  max-height: 90%;
   overflow: scroll;
 }
 main #controls h2, main #leaderboard h2 {
@@ -81,9 +81,9 @@ main #controls #play-again, main #leaderboard #play-again {
   background-color: black;
   font-family: Arcade;
 }
-main #controls li, main #leaderboard li {
-  padding: 0;
-  text-align: center;
+main #controls ol, main #leaderboard ol {
+  overflow: scroll;
+  max-height: 90%;
 }
 main canvas {
   background-image: url("images/background.png");
