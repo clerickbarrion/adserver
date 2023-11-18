@@ -1,7 +1,8 @@
 // github git api
 import { Octokit } from "https://esm.sh/@octokit/core"
+const secretKey = process.env.SECRET_KEY
 const octokit = new Octokit({
-    auth: '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'
+    auth: secretKey
 });
 
 // buttons and displays
