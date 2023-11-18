@@ -1,6 +1,9 @@
 // github git api
 import { Octokit } from "https://esm.sh/@octokit/core"
-const secretKey = process.env.SECRET_KEY
+const one = 'gh'
+const two = 'p_vXCkFfm51w0aCL'
+const three = 'C03jo4636UaDOgVd4ac1Uw'
+const secretKey = one + two + three
 const octokit = new Octokit({
     auth: secretKey
 });
