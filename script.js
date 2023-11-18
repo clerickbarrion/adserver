@@ -47,7 +47,7 @@ async function postScores(data){
 }
 // event listeners
 usernameInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter') {
+    if (e.key === 'Enter' && usernameInput.value && usernameInput.value.length < 11) {
         startScreen.style.display = 'none'
         let loop = spawnLoop()
         animate(loop);
