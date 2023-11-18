@@ -85,6 +85,9 @@ main #controls ol, main #leaderboard ol {
   overflow: scroll;
   max-height: 90%;
 }
+main #controls ol li, main #leaderboard ol li {
+  text-align: center;
+}
 main canvas {
   background-image: url("images/background.png");
   background-position: center;

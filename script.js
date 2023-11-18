@@ -23,13 +23,15 @@ const healthDisplay = document.getElementById('health')
 var score = 0, health = 100
 
 ///////// get and post scores
-const result = await octokit.request('GET /gists/{gist_id}', {
-    gist_id: '779fab2e80cc29dd187a82e1ae8fabd8',
-    headers: {
-    'X-GitHub-Api-Version': '2022-11-28'
-    }
-})
-var scores = JSON.parse(result.data.files.adl.content).scores
+async function getScores() {
+    const result = await octokit.request('GET /gists/{gist_id}', {
+        gist_id: '779fab2e80cc29dd187a82e1ae8fabd8',
+        headers: {
+        'X-GitHub-Api-Version': '2022-11-28'
+        }
+    })
+    return JSON.parse(result.data.files.adl.content).scores
+}
 
 async function postScores(data){
     await octokit.request('PATCH /gists/{gist_id}', {
@@ -147,12 +149,14 @@ class Game {
                 rect1.height + rect1.y > rect2.y)
     }
     leaderboard(){
-        scores.push({
-            name: usernameInput.value,
-            score: score
+        getScores().then((scores) => {
+            scores.push({
+                name: usernameInput.value,
+                score: score
+            })
+            const data = JSON.stringify({scores: scores})
+            postScores(data)
         })
-        const data = JSON.stringify({scores: scores})
-        postScores(data)
 
         let place = document.createElement('li')
         place.textContent = `${usernameInput.value}: ${score}`
@@ -266,4 +270,4 @@ class Astroid {
 
 const game = new Game(canvas.width, canvas.height)
 
-leaderboardInit(scores)
+getScores().then((scores)=>{leaderboardInit(scores)})
