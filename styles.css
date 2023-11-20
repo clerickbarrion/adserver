@@ -54,6 +54,7 @@ mark {
 main {
   display: flex;
   justify-content: space-evenly;
+  max-height: 90vh;
 }
 main #controls, main #leaderboard {
   display: flex;
