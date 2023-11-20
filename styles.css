@@ -74,12 +74,14 @@ main #controls h2, main #leaderboard h2 {
 main #controls p, main #leaderboard p {
   margin: 10px;
 }
-main #controls #play-again, main #leaderboard #play-again {
-  display: none;
+main #controls #play-again, main #controls #pause, main #leaderboard #play-again, main #leaderboard #pause {
   font-size: 2rem;
   color: white;
   background-color: black;
   font-family: Arcade;
+}
+main #controls #play-again, main #leaderboard #play-again {
+  display: none;
 }
 main #controls ol, main #leaderboard ol {
   overflow: scroll;
@@ -95,6 +97,6 @@ main canvas {
   border: 1px solid black;
 }
 
-#player, #astroid {
+#player, #astroid, #hp, #shield, #speedboost, #x2score, #x2shot {
   display: none;
 }/*# sourceMappingURL=styles.css.map */
