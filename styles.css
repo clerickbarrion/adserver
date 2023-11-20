@@ -65,7 +65,7 @@ main #controls, main #leaderboard {
   border: 3px solid red;
   padding: 5px;
   color: black;
-  max-height: 90%;
+  max-height: 70%;
   overflow: scroll;
 }
 main #controls h2, main #leaderboard h2 {

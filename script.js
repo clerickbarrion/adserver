@@ -11,8 +11,8 @@ const octokit = new Octokit({
 // buttons and displays
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
-const CANVAS_WIDTH = canvas.width = 720;
-const CANVAS_HEIGHT = canvas.height = 720;
+const CANVAS_WIDTH = canvas.width = 670
+const CANVAS_HEIGHT = canvas.height = 670
 const title = document.getElementById('title')
 const places = document.getElementById('places')
 const playAgainBtn = document.getElementById('play-again')
