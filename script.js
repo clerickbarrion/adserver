@@ -354,6 +354,6 @@ class Powerups {
     }
 }
 
-const game = new Game(canvas.width, canvas.height)
+const game = new Game(CANVAS_WIDTH, CANVAS_HEIGHT)
 
 getScores().then((scores)=>{leaderboardInit(scores)})
