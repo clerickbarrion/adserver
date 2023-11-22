@@ -221,7 +221,7 @@ class Game {
     }
     spawnBoss(){
         let rng = Math.floor(Math.random() * 100)
-        if (rng < 11) {this.boss.push(new Boss(this))}
+        if (rng < 6) {this.boss.push(new Boss(this))}
     }
     checkCollision(rect1, rect2){
         return (rect1.x < rect2.x + rect2.width &&
@@ -379,12 +379,16 @@ class Boss {
         this.delete = false
     }
     update(){
-        if(this.health <= 0){this.delete = true;}
+        if(this.health <= 0){
+            score += this.game.scoreIncrement + 3000
+            scoreDisplay.innerText = score
+            this.delete = true;
+        }
         if (this.y >= this.game.height -this.height || this.y <= 0) this.speedY *= -1
         this.y += this.speedY
         if(!this.minions.length&&this.cooldown == false){
             this.cooldown = true
-            setTimeout(()=>{this.spawnMinions();},10000)
+            setTimeout(()=>{this.spawnMinions();},15000)
         }
         this.minions.forEach(minion =>{minion.update()})
         this.minions = this.minions.filter(minion => !minion.delete)
@@ -417,7 +421,11 @@ class Minion {
         this.delete = false
     }
     update(){
-        if(this.health <= 0){this.delete = true;}
+        if(this.health <= 0){
+            score += this.game.scoreIncrement + 500
+            scoreDisplay.innerText = score
+            this.delete = true;
+        }
         if (this.y >= this.game.height -this.height || this.y <= 0) this.speedY *= -1
         this.y += this.speedY
     }
