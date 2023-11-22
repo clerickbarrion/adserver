@@ -74,8 +74,16 @@ pause.addEventListener('click', () => {
 function spawnLoop(){
     let loop = setInterval(() => {
         if (health > 0 && !game.pause) {
-            game.spawnAstroids()
+            if (!game.boss.length){
+                game.spawnAstroids();
+                game.spawnBoss();
+            }
             game.spawnPowerups()
+            if (game.boss[0].minions){
+                game.boss[0].minions.forEach(minion => {
+                        if(!minion.delete){minion.shoot()}
+                })
+            }
         }
     }, 5000)
     return loop
@@ -85,6 +93,7 @@ function animate(loop){
     if (health <= 0) {
         clearInterval(loop)
         game.astroids = []
+        game.boss = []
         title.innerText = 'GAME OVER'
         game.leaderboard()
         playAgainBtn.style.display = 'block'
@@ -119,6 +128,7 @@ class Game {
         this.player = new Player(this)
         this.astroids = []
         this.powerups = []
+        this.boss = []
         this.scoreIncrement = 10
         this.input = new InputHandler(this)
         this.keys = []
@@ -131,6 +141,7 @@ class Game {
         this.astroids.forEach(astroid => {
             astroid.update()
             if (this.checkCollision(this.player,astroid)){astroid.delete = true;}   
+
             this.player.projectiles.forEach(projectile => {
                 if (this.checkCollision(projectile,astroid)){
                     astroid.delete = true;
@@ -171,11 +182,31 @@ class Game {
             }
         })
         this.powerups = this.powerups.filter(powerup => !powerup.delete)
+
+        this.boss.forEach(boss => {
+            boss.update()
+            this.player.projectiles.forEach(projectile =>{
+                if (game.checkCollision(projectile,boss)&&boss.minions.length == 0){
+                    boss.health -= 5
+                    projectile.delete = true
+                }
+            })
+            boss.minions.forEach(minion =>{
+                this.player.projectiles.forEach(projectile =>{
+                    if (game.checkCollision(projectile,minion)){
+                        minion.health -= 5
+                        projectile.delete = true
+                    }
+                })
+            })
+        })
+        this.boss = this.boss.filter(boss => !boss.delete)
     }
     draw(context){
         this.player.draw(context);
         this.astroids.forEach(astroid => {astroid.draw(context)})
         this.powerups.forEach(powerup => {powerup.draw(context)})
+        this.boss.forEach(boss => {boss.draw(context)})
     }
     spawnAstroids(){
         for (let i =0; i< Math.random() * 6 + 5; i++){
@@ -187,6 +218,10 @@ class Game {
     spawnPowerups(){
         let rng = Math.floor(Math.random() * 100)
         if (rng < 26) {this.powerups.push(new Powerups(this))}
+    }
+    spawnBoss(){
+        let rng = Math.floor(Math.random() * 100)
+        if (rng < 11) {this.boss.push(new Boss(this))}
     }
     checkCollision(rect1, rect2){
         return (rect1.x < rect2.x + rect2.width &&
@@ -241,10 +276,10 @@ class Player {
         })
     }
     shoot(){
-        this.projectiles.push(new Projectile(this.game, this))
+        this.projectiles.push(new Projectile(this.game, this, 'straight'))
         if (this.x2shot) {
-            this.projectiles.push(new Projectile2(this.game, this, 'up'))
-            this.projectiles.push(new Projectile2(this.game, this, 'down'))
+            this.projectiles.push(new Projectile(this.game, this, 'up'))
+            this.projectiles.push(new Projectile(this.game, this, 'down'))
         }
     }
 }
@@ -271,34 +306,32 @@ class InputHandler {
 }
 
 class Projectile {
-    constructor(game,player){
+    constructor(game,player,direction){
         this.game = game;
         this.x = player.x + player.width;
         this.y = player.y + player.height/2;
         this.width = 10;
         this.height = 3;
         this.speed = 10;
+        this.direction = direction
         this.delete = false;
     }
     update(){
         this.x += this.speed
+        switch (this.direction) {
+            case 'up':
+                this.y -= this.speed/2
+                break;
+            case 'down':
+                this.y += this.speed/2
+                break;
+        }
         if (this.x > this.game.width * 0.8) this.delete = true;
+        
     }
     draw(context){
         context.fillStyle = 'red'
         context.fillRect(this.x, this.y, this.width, this.height)
-    }
-}
-
-class Projectile2 extends Projectile {
-    constructor(game,player,direction){
-        super(game,player)
-        this.direction = direction
-    }
-    update() {
-        this.x += this.speed;
-        this.direction == 'up' ? this.y -= this.speed/2 : this.y += this.speed/2
-        if (this.x > this.game.width * 0.8) this.delete = true;
     }
 }
 
@@ -328,6 +361,77 @@ class Astroid {
         context.fillStyle = 'rgba(255,255,255,0.0)'
         context.fillRect(this.x,this.y,this.width,this.height)
         context.drawImage(this.image, this.x, this.y)
+    }
+}
+
+class Boss {
+    constructor(game) {
+        this.game = game
+        this.image = document.getElementById('boss')
+        this.width = 200
+        this.height = 200
+        this.x = this.game.width - this.width
+        this.y = this.game.height/2 - this.height/2
+        this.speedY = 2
+        this.health = 1000
+        this.minions = []
+        this.cooldown = false
+        this.delete = false
+    }
+    update(){
+        if(this.health <= 0){this.delete = true;}
+        if (this.y >= this.game.height -this.height || this.y <= 0) this.speedY *= -1
+        this.y += this.speedY
+        if(!this.minions.length&&this.cooldown == false){
+            this.cooldown = true
+            setTimeout(()=>{this.spawnMinions();},10000)
+        }
+        this.minions.forEach(minion =>{minion.update()})
+        this.minions = this.minions.filter(minion => !minion.delete)
+    }
+    draw(context){
+        context.fillStyle = 'rgba(255,255,255,0)'
+        context.fillRect(this.x,this.y,this.width,this.height)
+        context.drawImage(this.image, this.x, this.y)
+        this.minions.forEach(minion =>{minion.draw(context)})
+    }
+    spawnMinions(){
+        this.cooldown = false
+        for (let i =0; i < 4; i++){
+            this.minions.push(new Minion(this.game,this))
+        }
+    }
+}
+
+class Minion {
+    constructor(game, boss) {
+        this.game = game
+        this.boss = boss
+        this.image = document.getElementById('minion')
+        this.width = 70
+        this.height = 70
+        this.x = this.game.width - this.boss.width -this.width
+        this.y = Math.random() * (this.game.height - this.height)
+        this.speedY = 4
+        this.health = 200
+        this.delete = false
+    }
+    update(){
+        if(this.health <= 0){this.delete = true;}
+        if (this.y >= this.game.height -this.height || this.y <= 0) this.speedY *= -1
+        this.y += this.speedY
+    }
+    draw(context){
+        context.fillStyle = 'rgba(255,255,255,0)'
+        context.fillRect(this.x,this.y,this.width,this.height)
+        context.drawImage(this.image, this.x, this.y)
+    }
+    shoot(){
+        let astroid = new Astroid(this.game)
+        astroid.x = this.x
+        astroid.y = this.y
+        astroid.speed = 4
+        this.game.astroids.push(astroid)
     }
 }
 
