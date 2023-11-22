@@ -98,7 +98,7 @@ main canvas {
   border: 1px solid black;
 }
 
-#player, #astroid, #hp, #shield, #speedboost, #x2score, #x2shot {
+#player, #astroid, #hp, #shield, #speedboost, #x2score, #x2shot, #minion, #boss {
   display: none;
 }
 
