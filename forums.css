@@ -1,0 +1,189 @@
+body {
+  max-height: initial;
+}
+
+small {
+  color: red;
+}
+
+mark {
+  color: lightcoral;
+  background-color: initial;
+}
+
+#message {
+  display: none;
+  position: absolute;
+  width: 100%;
+  justify-content: center;
+  background-color: green;
+  color: black;
+}
+
+#discussion-creation, #sign-up-page, #log-in-page {
+  display: none;
+  align-items: center;
+  justify-content: space-evenly;
+  flex-direction: column;
+  position: absolute;
+  background-color: black;
+  width: 100%;
+  height: 100%;
+}
+#discussion-creation h1, #sign-up-page h1, #log-in-page h1 {
+  margin: initial;
+}
+#discussion-creation .close, #sign-up-page .close, #log-in-page .close {
+  position: absolute;
+  top: 0;
+  left: 1rem;
+}
+#discussion-creation .close:hover, #sign-up-page .close:hover, #log-in-page .close:hover {
+  color: red;
+  cursor: pointer;
+}
+#discussion-creation #discussion-title-container, #sign-up-page #discussion-title-container, #log-in-page #discussion-title-container {
+  width: 40%;
+}
+#discussion-creation #discussion-body-container, #sign-up-page #discussion-body-container, #log-in-page #discussion-body-container {
+  width: 50%;
+  height: 50%;
+}
+#discussion-creation #discussion-body-container textarea, #sign-up-page #discussion-body-container textarea, #log-in-page #discussion-body-container textarea {
+  height: 50%;
+}
+#discussion-creation #discussion-title-container, #discussion-creation #discussion-body-container, #sign-up-page #discussion-title-container, #sign-up-page #discussion-body-container, #log-in-page #discussion-title-container, #log-in-page #discussion-body-container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+#sign-up-page div, #log-in-page div {
+  width: 40%;
+  display: flex;
+  justify-content: space-between;
+}
+#sign-up-page div :nth-child(2), #log-in-page div :nth-child(2) {
+  width: 50%;
+}
+#sign-up-page #warning, #log-in-page #warning {
+  font-family: "Courier New", Courier, monospace;
+}
+
+#log-in-page {
+  justify-content: center;
+  gap: 1rem;
+}
+
+nav {
+  width: 100%;
+  display: block;
+}
+nav ul {
+  display: flex;
+  list-style-type: none;
+  justify-content: space-between;
+  padding: 10px;
+}
+nav ul #account-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+nav ul #logged-in #log-out {
+  width: 100%;
+}
+
+main {
+  margin: 30px;
+  flex-direction: column;
+  justify-content: initial;
+  height: 100%;
+  overflow: scroll;
+}
+main .forum {
+  width: 100%;
+  display: flex;
+  flex-direction: column-reverse;
+}
+main .forum .forum-head {
+  order: 1;
+}
+main .forum .forum-head {
+  background-color: gray;
+  display: flex;
+  justify-content: space-between;
+}
+main .forum .forum-head h1 {
+  margin: 0px 15px;
+}
+main .forum details summary {
+  display: flex;
+  font-size: 0.7rem;
+  width: 100%;
+}
+main .forum details summary h1 {
+  margin: 0 15px;
+  text-indent: 5px;
+  background-color: rgba(100, 100, 100, 0.2);
+}
+main .forum details summary h1:nth-child(1) {
+  width: 60%;
+  color: lightcoral;
+  cursor: pointer;
+}
+main .forum details summary h1:nth-child(2), main .forum details summary h1:nth-child(3) {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 20%;
+  font-size: 0.5rem;
+}
+main .forum details article {
+  font-family: Arial, Helvetica, sans-serif;
+  font-size: 20px;
+  margin: 0 15px;
+  text-indent: 5px;
+  background-color: rgba(100, 100, 100, 0.2);
+}
+main .forum details article p {
+  margin: 10px 0;
+}
+main .forum details article .user-date {
+  display: flex;
+}
+main .forum details article .write-comment-box-head {
+  display: flex;
+  gap: 5px;
+}
+main .forum details article .write-comment-container {
+  display: flex;
+  flex-direction: column;
+}
+main .forum details article .write-comment-container .write-comment-box {
+  background-color: white;
+  color: black;
+  height: 1rem;
+}
+main .forum details article .comment-section {
+  display: flex;
+  flex-direction: column-reverse;
+}
+
+footer {
+  background-color: gray;
+  font-size: 0.5rem;
+  display: flex;
+  justify-content: space-evenly;
+}
+footer a img {
+  height: 100%;
+}
+footer ul {
+  height: -moz-fit-content;
+  height: fit-content;
+  list-style-type: none;
+}
+footer ul li a {
+  text-decoration: none;
+  color: white;
+}/*# sourceMappingURL=forums.css.map */
