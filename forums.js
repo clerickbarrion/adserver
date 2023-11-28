@@ -273,6 +273,13 @@ class Discussion {
                     <button class="write-comment-button" type="button">Submit</button>
                 </div>
                 <textarea type="text" id="write-comment-box" class="write-comment-box"></textarea>
+                <div class='sort-comments-container'>
+                    <label for='sort-comments'>Sort comments by</label>
+                    <select id='sort-comments' class='sort-comments'>
+                        <option value='newest'>newest</option>
+                        <option value='oldest'>oldest</option>
+                    </select>
+                </div>
             </div>
             <hr>
             <div class="comment-section" id=${this.id}>
@@ -287,6 +294,11 @@ class Discussion {
             let comment = new Comment(localStorage.getItem('username'),getDate(),commentValue,commentSection)
             comment.createComment()
             comment.postComment()
+        })
+        button = details.querySelector('.sort-comments')
+        button.addEventListener('change', ()=>{
+            let commentSection = document.getElementById(this.id)
+            button.value === 'newest' ? commentSection.style.flexDirection = 'column-reverse' : commentSection.style.flexDirection = 'column'
         })
         return details.parentNode.id
     }

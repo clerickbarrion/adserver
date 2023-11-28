@@ -11,6 +11,10 @@ mark {
   background-color: initial;
 }
 
+.rating {
+  display: flex;
+}
+
 #message {
   display: none;
   position: absolute;
