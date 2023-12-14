@@ -344,7 +344,7 @@ class Astroid {
         this.x = this.game.width
         this.y = Math.random() * (this.game.height - this.height)
         this.speed = 5
-        this.healthDecrement = 10
+        this.healthDecrement = 5
         this.delete = false
     }
     update(){

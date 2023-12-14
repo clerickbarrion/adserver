@@ -23,6 +23,20 @@ const logOut = document.getElementById('log-out')
 const createAccountButton = document.getElementById('create-account')
 var discussionButton
 
+class Account {
+    constructor(){
+        this.logOut = document.getElementById('log-out')
+        this.loginButton = document.getElementById('log-in')
+        this.login = document.getElementById('login')
+        this.signUpButton = document.getElementById('sign-up')
+        this.createAccountButton = document.getElementById('create-account')
+    }
+    
+}
+
+
+
+
 if (localStorage.getItem('username')) {
     let username = document.getElementById('username')
     accountButtons.style.display = 'none';
@@ -74,7 +88,6 @@ login.addEventListener('click', ()=>{
         loginError.style.display = 'block'
         loginError.innerText ='Enter username and password'
     }
-    
 })
 
 signUpButton.addEventListener('click', ()=>{
@@ -88,9 +101,7 @@ createAccountButton.addEventListener('click', ()=>{
     let confirmPassword = document.getElementById('confirm-password')
     if (username.value && username.value.length < 21 && password.value && confirmPassword.value && password.value === confirmPassword.value){
         getAccounts().then((result)=>{
-            let usernames = result.filter(account =>{
-                return account.user.toUpperCase() === username.value.toUpperCase()
-            })
+            let usernames = result.filter(account =>account.user.toUpperCase() === username.value.toUpperCase())
             if (usernames.length > 0) {
                 createAccountError.style.display = 'block'
                 createAccountError.innerText = 'Username already taken'
@@ -220,12 +231,28 @@ class Comment {
             <p>${this.date}</p>
         </div>
         <p class="comment-content">${this.commentValue}</p>
+        <div class='rating'>
+            <img src='images/likes.png'><p class='ld'>0</p>
+            <img src='images/dislikes.png'><p class='ld'>0</p>
+        </div>
         <hr>
         `
         this.commentSection.appendChild(div)
         let commentNumber = this.commentSection.parentNode.parentNode.querySelector('.comment-number')
         commentNumber.innerText = Number(commentNumber.innerText) + 1
         this.commentSection.parentNode.parentNode.querySelector('.last-post').innerText = this.user
+        let ratings  = div.querySelectorAll('.ld')
+        Array.from(ratings).forEach(rating => {
+            rating.previousSibling.addEventListener('click', ()=>{
+                if(Array.from(rating.classList).includes(localStorage.getItem('username'))){
+                    rating.classList.remove(localStorage.getItem('username'))
+                    rating.innerText = Number(rating.innerText) -1
+                } else {
+                    rating.classList.add(localStorage.getItem('username'))
+                    rating.innerText = Number(rating.innerText) +1
+                }
+            })
+        })
     }
     postComment(){
         getDiscussions().then((result) =>{
@@ -295,10 +322,10 @@ class Discussion {
             comment.createComment()
             comment.postComment()
         })
-        button = details.querySelector('.sort-comments')
-        button.addEventListener('change', ()=>{
+        const sortButton = details.querySelector('.sort-comments')
+        sortButton.addEventListener('change', ()=>{
             let commentSection = document.getElementById(this.id)
-            button.value === 'newest' ? commentSection.style.flexDirection = 'column-reverse' : commentSection.style.flexDirection = 'column'
+            sortButton.value === 'newest' ? commentSection.style.flexDirection = 'column-reverse' : commentSection.style.flexDirection = 'column'
         })
         return details.parentNode.id
     }
@@ -326,7 +353,6 @@ Array.from(discussionButtons).forEach(button => {
         discussionButton = button
     })
 })
-
 
 Array.from(closeButtons).forEach(button =>{
     button.addEventListener('click', ()=>{
