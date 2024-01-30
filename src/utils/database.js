@@ -72,4 +72,47 @@ function addComment(username,date,content,discussion_id){
     })
 }
 
-module.exports = {getScores,addScore,getDiscussions,getComments,addDiscussion,addComment}
+function signUp(username,password){
+    return new Promise((resolve,reject)=>{
+        con.getConnection((err,connection)=>{
+            if(err) reject(err);
+            connection.query(`SELECT * FROM accounts WHERE username='${username}'`, (err,rows)=>{
+                if(err) reject(err);
+                if(rows.length){
+                    reject({error: "Username already exists"})
+                    connection.release();
+                } else {
+                    connection.query(`INSERT INTO accounts (username,password) VALUES ('${username}','${password}')`, (err,rows)=>{
+                        if(err) reject(err);
+                        connection.release();
+                        resolve({success: "Account created successfully"});
+                    })
+                }
+            })
+        })
+    
+    })
+}
+
+function login(username,password){
+    return new Promise((resolve,reject)=>{
+        con.getConnection((err,connection)=>{
+            if(err) reject(err);
+            connection.query(`SELECT * FROM accounts WHERE username='${username}'`, (err,rows)=>{
+                if(err) reject(err);
+                if(rows.length){
+                    if(rows[0].password === password){
+                        resolve({success: "Login successful"});
+                    } else {
+                        reject({error: "Incorrect password"})
+                    }
+                    connection.release();
+                } else {
+                    reject({error: "Username does not exist"})
+                }
+            })
+        })
+    })
+}
+
+module.exports = {getScores,addScore,getDiscussions,getComments,addDiscussion,addComment,signUp,login}

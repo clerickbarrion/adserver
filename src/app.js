@@ -45,4 +45,18 @@ app.post('/api/addComment', async (req, res) => {
     res.end()
 })
 
+app.post('/api/signUp', async (req, res) => {
+    const {username,password} = req.body;
+    const result = await database.signUp(username,password).then(result=>result).catch(err =>err);
+    res.write(JSON.stringify(result))
+    res.end()
+})
+
+app.get('/api/login', async (req, res) => {
+    const {username,password} = req.query;
+    const result = await database.login(username,password).then(result=>result).catch(err =>err);
+    res.write(JSON.stringify(result))
+    res.end()
+})
+
 app.listen(port)

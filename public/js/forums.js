@@ -34,33 +34,26 @@ loginButton.addEventListener('click', ()=>{
     page.style.display = 'flex'
 })
 
-login.addEventListener('click', ()=>{
+login.addEventListener('click', async()=>{
     let username = document.getElementById('login-username')
     let password = document.getElementById('login-password')
     if (username.value && password.value) {
-        getAccounts().then((result)=>{
-            let account = result.filter(account =>{
-                return account.user.toUpperCase() === username.value.toUpperCase()
-            })
-            if (account.length === 0) {
-                loginError.style.display = 'block'
-                loginError.innerText =`Account '${username.value}' does not exist`
-            } else if (password.value === account[0].password){
-                localStorage.setItem('username',username.value)
-                username.parentNode.parentNode.style.display = 'none'
-                message.style.display = 'flex';
-                message.innerText = `Logged in as ${username.value}`
-                loginError.style.display = 'none'
-                setTimeout(()=>{message.style.display='none'},3000)
-                username = document.getElementById('username')
-                accountButtons.style.display = 'none';
-                loggedIn.style.display = 'block';
-                username.innerText = localStorage.getItem('username')
-            } else {
-                loginError.style.display = 'block'
-                loginError.innerText ='Invalid Password'
-            }
-        })
+        const result = await fetch(`/api/login?username=${username.value}&password=${password.value}`).then(res => res.json()).then(data => data).catch(err => err)
+        if (result.error) {
+            loginError.style.display = 'block'
+            loginError.innerText = result.error
+        } else {
+            username.parentNode.parentNode.style.display = 'none'
+            message.style.display = 'flex';
+            message.innerText = `Logged in as ${username.value}`
+            loginError.style.display = 'none'
+            setTimeout(()=>{message.style.display='none'},3000)
+            localStorage.setItem('username',username.value)
+            username = document.getElementById('username')
+            accountButtons.style.display = 'none';
+            loggedIn.style.display = 'block';
+            username.innerText = localStorage.getItem('username')
+        }
     } else {
         loginError.style.display = 'block'
         loginError.innerText ='Enter username and password'
@@ -72,27 +65,31 @@ signUpButton.addEventListener('click', ()=>{
     page.style.display = 'flex'
 })
 
-createAccountButton.addEventListener('click', ()=>{
+createAccountButton.addEventListener('click', async ()=>{
     let username = document.getElementById('create-username')
     let password = document.getElementById('create-password')
     let confirmPassword = document.getElementById('confirm-password')
     if (username.value && username.value.length < 21 && password.value && confirmPassword.value && password.value === confirmPassword.value){
-        getAccounts().then((result)=>{
-            let usernames = result.filter(account =>account.user.toUpperCase() === username.value.toUpperCase())
-            if (usernames.length > 0) {
-                createAccountError.style.display = 'block'
-                createAccountError.innerText = 'Username already taken'
-            }
-            else {
-                result.push({"user": username.value, "password": password.value})
-                createAccount(JSON.stringify({accounts: result}))
-                username.parentNode.parentNode.style.display = 'none'
-                message.style.display = 'flex';
-                message.innerText = 'Account Created'
-                createAccountError.style.display = 'none'
-                setTimeout(()=>{message.style.display='none'},3000)
-            }
-        })
+        const result = await fetch('/api/signUp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username:username.value,
+                password:password.value
+            })
+        }).then(res => res.json()).then(data => data).catch(err => err)
+        if (result.error) {
+            createAccountError.style.display = 'block'
+            createAccountError.innerText = result.error
+        } else {
+            username.parentNode.parentNode.style.display = 'none'
+            message.style.display = 'flex';
+            message.innerText = 'Account Created'
+            createAccountError.style.display = 'none'
+            setTimeout(()=>{message.style.display='none'},3000)
+        }
     } else if (username.value.length > 20) {
         createAccountError.style.display = 'block'
         createAccountError.innerText = 'Username too long'
