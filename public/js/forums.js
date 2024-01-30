@@ -1,12 +1,3 @@
-import { Octokit } from "https://esm.sh/@octokit/core"
-const one = 'gh'
-const two = 'p_vXCkFfm51w0aCL'
-const three = 'C03jo4636UaDOgVd4ac1Uw'
-const secretKey = one + two + three
-const octokit = new Octokit({
-    auth: secretKey
-});
-
 const message = document.getElementById('message')
 const createAccountError = document.getElementById('create-account-error')
 const loginError = document.getElementById('log-in-error')
@@ -22,20 +13,6 @@ const login = document.getElementById('login')
 const logOut = document.getElementById('log-out')
 const createAccountButton = document.getElementById('create-account')
 var discussionButton
-
-class Account {
-    constructor(){
-        this.logOut = document.getElementById('log-out')
-        this.loginButton = document.getElementById('log-in')
-        this.login = document.getElementById('login')
-        this.signUpButton = document.getElementById('sign-up')
-        this.createAccountButton = document.getElementById('create-account')
-    }
-    
-}
-
-
-
 
 if (localStorage.getItem('username')) {
     let username = document.getElementById('username')
@@ -125,85 +102,20 @@ createAccountButton.addEventListener('click', ()=>{
     }
 })
 
-///get and post
-async function getAccounts() {
-    const result = await octokit.request('GET /gists/{gist_id}', {
-        gist_id: 'f2ebbc31bd13eb014f34a6043912b89f',
-        headers: {
-        'X-GitHub-Api-Version': '2022-11-28'
-        }
-    })
-    return JSON.parse(result.data.files["ad-accounts.json"].content).accounts
-}
-async function createAccount(data) {
-    await octokit.request('PATCH /gists/{gist_id}', {
-        gist_id: 'f2ebbc31bd13eb014f34a6043912b89f',
-        description: 'created account',
-        files: {
-            "ad-accounts.json": {
-                content: data,
-            },
-        },
-        headers: {
-          'X-GitHub-Api-Version': '2022-11-28'
-        }
-      })
-}
-async function getDiscussions() {
-    const result = await octokit.request('GET /gists/{gist_id}', {
-        gist_id: 'f2ebbc31bd13eb014f34a6043912b89f',
-        headers: {
-        'X-GitHub-Api-Version': '2022-11-28'
-        }
-    })
-    let sections = JSON.parse(result.data.files["ad-discussions.json"].content).sections
-    return sections
-}
-async function postDiscussion(data) {
-    await octokit.request('PATCH /gists/{gist_id}', {
-        gist_id: 'f2ebbc31bd13eb014f34a6043912b89f',
-        description: 'created discussion',
-        files: {
-            "ad-discussions.json": {
-                content: data,
-            },
-        },
-        headers: {
-          'X-GitHub-Api-Version': '2022-11-28'
-        }
-      })
-}
-///
+async function discussionInit(){
 
-function discussionInit(){
-    getDiscussions().then((result) => {
-        let generalDiscussion = result[0]
-        let questionDiscussion = result[1]
-        let offTopicDiscussion = result[2]       
-        generalDiscussion.forEach(discussion => {
-            let newDiscussion = new Discussion(discussion.id,discussion.user,discussion.title,discussion.content,discussion.date,document.getElementById('general'))
-            newDiscussion.createDiscussion()
-            discussion.comments.forEach(comment => {
-                let newComment = new Comment(comment.user,comment.date,comment.content,document.getElementById(discussion.id))
-                newComment.createComment()
-            })
-        })
-        questionDiscussion.forEach(discussion => {
-            let newDiscussion = new Discussion(discussion.id,discussion.user,discussion.title,discussion.content,discussion.date,document.getElementById('questions'))
-            newDiscussion.createDiscussion()
-            discussion.comments.forEach(comment => {
-                let newComment = new Comment(comment.user,comment.date,comment.content,document.getElementById(discussion.id))
-                newComment.createComment()
-            })
-        })
-        offTopicDiscussion.forEach(discussion => {
-            let newDiscussion = new Discussion(discussion.id,discussion.user,discussion.title,discussion.content,discussion.date,document.getElementById('offTopic'))
-            newDiscussion.createDiscussion()
-            discussion.comments.forEach(comment => {
-                let newComment = new Comment(comment.user,comment.date,comment.content,document.getElementById(discussion.id))
-                newComment.createComment()
-            })
-        })
+    const discussions = await fetch('/api/getDiscussions').then(res => res.json()).then(data => data)
+
+    discussions.forEach(discussion => {
+        let newDiscussion = new Discussion(discussion.id,discussion.username,discussion.title,discussion.content,discussion.date,discussion.section)
+        newDiscussion.createDiscussion()
+    })
+
+    const comments = await fetch('/api/getComments').then(res => res.json()).then(data => data)
+
+    comments.forEach(comment => {
+        let newComment = new Comment(comment.username,comment.date,comment.content,document.getElementById(comment.discussion_id))
+        newComment.createComment()
     })
 }
 
@@ -255,14 +167,17 @@ class Comment {
         })
     }
     postComment(){
-        getDiscussions().then((result) =>{
-            let discussion
-            for(let i of result){
-                discussion = i.filter(item=>item.id == this.commentSection.id)
-                if (discussion.length) break
-            }
-            discussion[0].comments.push({user: this.user,date:this.date,content: this.commentValue})
-            postDiscussion(JSON.stringify({sections:result}))
+        fetch('/api/addComment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username:this.user,
+                date:this.date,
+                content:this.commentValue,
+                discussion_id:this.commentSection.id
+            })
         })
     }
 }
@@ -274,7 +189,7 @@ class Discussion {
         this.content = content
         this.user = user
         this.date = date
-        this.forum = forum
+        this.forum = document.getElementById(`${forum}`)
     }
     createDiscussion(){
         if (this.user == null) {this.user = 'Anonymous'}
@@ -329,20 +244,20 @@ class Discussion {
         })
         return details.parentNode.id
     }
-    postDiscussion(topic){
-        getDiscussions().then((result) => {
-            switch (topic) {
-                case 'general':
-                    result[0].push({id: this.id, user: this.user, title: this.title, content: this.content, date: this.date, comments: []})
-                    break;
-                case 'questions':
-                    result[1].push({id: this.id, user: this.user, title: this.title, content: this.content, date: this.date, comments: []})
-                    break;
-                case 'offTopic':
-                    result[2].push({id: this.id, user: this.user, title: this.title, content: this.content, date: this.date, comments: []})
-                    break;
-            }
-            postDiscussion(JSON.stringify({sections:result}))
+    postDiscussion(){
+        console.log(this.content)
+        fetch('/api/addDiscussion', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username:this.user,
+                section:this.forum.id,
+                title:this.title,
+                date:this.date,
+                content:this.content,
+            })
         })
     }
 }
@@ -363,7 +278,7 @@ Array.from(closeButtons).forEach(button =>{
 postDiscussionButton.addEventListener('click', ()=>{
     let title = document.getElementById('discussion-title').value
     let content = document.getElementById('discussion-body').value
-    let forum = discussionButton.parentNode.parentNode
+    let forum = discussionButton.parentNode.parentNode.id
     let discussion = new Discussion(Number(new Date),localStorage.getItem('username'),title,content,getDate(),forum)
     let topic = discussion.createDiscussion()
     discussion.postDiscussion(topic)

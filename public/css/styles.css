@@ -1,6 +1,6 @@
 @font-face {
   font-family: Arcade;
-  src: url(font/ARCADECLASSIC.TTF);
+  src: url(../font/ARCADECLASSIC.TTF);
 }
 html {
   height: 100%;
@@ -99,7 +99,7 @@ main #controls ol li, main #leaderboard ol li {
   text-align: center;
 }
 main canvas {
-  background-image: url("images/background.png");
+  background-image: url("../images/background.png");
   background-position: center;
   background-size: cover;
   border: 1px solid black;

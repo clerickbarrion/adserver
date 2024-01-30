@@ -1,12 +1,3 @@
-// github gist api
-import { Octokit } from "https://esm.sh/@octokit/core"
-const one = 'gh'
-const two = 'p_vXCkFfm51w0aCL'
-const three = 'C03jo4636UaDOgVd4ac1Uw'
-const secretKey = one + two + three
-const octokit = new Octokit({
-    auth: secretKey
-});
 
 // buttons and displays
 const canvas = document.getElementById('canvas')
@@ -23,31 +14,6 @@ const scoreDisplay = document.getElementById('score')
 const healthDisplay = document.getElementById('health')
 var score = 0, health = 100
 
-///////// get and post scores
-async function getScores() {
-    const result = await octokit.request('GET /gists/{gist_id}', {
-        gist_id: '779fab2e80cc29dd187a82e1ae8fabd8',
-        headers: {
-        'X-GitHub-Api-Version': '2022-11-28'
-        }
-    })
-    return JSON.parse(result.data.files.adl.content).scores
-}
-
-async function postScores(data){
-    await octokit.request('PATCH /gists/{gist_id}', {
-        gist_id: '779fab2e80cc29dd187a82e1ae8fabd8',
-        description: 'updated scores',
-        files: {
-            adl: {
-                content: data,
-            },
-        },
-        headers: {
-          'X-GitHub-Api-Version': '2022-11-28'
-        }
-      })
-}
 // event listeners
 usernameInput.addEventListener('keydown', e => {
     if (e.key === 'Enter' && usernameInput.value && usernameInput.value.length < 11) {
@@ -107,15 +73,12 @@ function animate(loop){
     requestAnimationFrame(animate)
 }
 
-function leaderboardInit(scores){
-    scores.sort((a,b) => {
-        if (a.score > b.score){return -1}
-        if (b.score < a.score){return 1}
-        return 0
-    })
+async function leaderboardInit(){
+    places.innerHTML = ''
+    const scores = await fetch('/api/getScores').then(res => res.json()).then(scores => scores)
     scores.forEach(score => {
         let place = document.createElement('li')
-        place.textContent = `${score.name}: ${score.score}`
+        place.textContent = `${score.username}: ${score.score}`
         places.appendChild(place)
     })
 }
@@ -140,7 +103,7 @@ class Game {
 
         this.astroids.forEach(astroid => {
             astroid.update()
-            if (this.checkCollision(this.player,astroid)){astroid.delete = true;}   
+            if (this.checkCollision(this.player,astroid)){astroid.delete = true}   
 
             this.player.projectiles.forEach(projectile => {
                 if (this.checkCollision(projectile,astroid)){
@@ -230,18 +193,12 @@ class Game {
                 rect1.height + rect1.y > rect2.y)
     }
     leaderboard(){
-        getScores().then((scores) => {
-            scores.push({
-                name: usernameInput.value,
-                score: score
-            })
-            const data = JSON.stringify({scores: scores})
-            postScores(data)
+        fetch('/api/addScore',{
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({username: usernameInput.value, score: score})
         })
-
-        let place = document.createElement('li')
-        place.textContent = `${usernameInput.value}: ${score}`
-        places.appendChild(place)
+        leaderboardInit()
     }
 }
 
@@ -344,7 +301,7 @@ class Astroid {
         this.x = this.game.width
         this.y = Math.random() * (this.game.height - this.height)
         this.speed = 5
-        this.healthDecrement = 5
+        this.healthDecrement = 10
         this.delete = false
     }
     update(){
@@ -468,4 +425,4 @@ class Powerups {
 
 const game = new Game(CANVAS_WIDTH, CANVAS_HEIGHT)
 
-getScores().then((scores)=>{leaderboardInit(scores)})
+leaderboardInit()
