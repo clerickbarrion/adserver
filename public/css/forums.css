@@ -13,6 +13,15 @@ mark {
 
 .rating {
   display: flex;
+  align-items: center;
+}
+.rating img {
+  height: 20px;
+  cursor: pointer;
+}
+.rating .ld {
+  text-align: center;
+  margin-right: 10px;
 }
 
 #message {

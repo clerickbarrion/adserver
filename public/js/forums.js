@@ -1,12 +1,3 @@
-import { Octokit } from "https://esm.sh/@octokit/core"
-const one = 'gh'
-const two = 'p_vXCkFfm51w0aCL'
-const three = 'C03jo4636UaDOgVd4ac1Uw'
-const secretKey = one + two + three
-const octokit = new Octokit({
-    auth: secretKey
-});
-
 const message = document.getElementById('message')
 const createAccountError = document.getElementById('create-account-error')
 const loginError = document.getElementById('log-in-error')
@@ -22,20 +13,6 @@ const login = document.getElementById('login')
 const logOut = document.getElementById('log-out')
 const createAccountButton = document.getElementById('create-account')
 var discussionButton
-
-class Account {
-    constructor(){
-        this.logOut = document.getElementById('log-out')
-        this.loginButton = document.getElementById('log-in')
-        this.login = document.getElementById('login')
-        this.signUpButton = document.getElementById('sign-up')
-        this.createAccountButton = document.getElementById('create-account')
-    }
-    
-}
-
-
-
 
 if (localStorage.getItem('username')) {
     let username = document.getElementById('username')
@@ -57,33 +34,26 @@ loginButton.addEventListener('click', ()=>{
     page.style.display = 'flex'
 })
 
-login.addEventListener('click', ()=>{
+login.addEventListener('click', async()=>{
     let username = document.getElementById('login-username')
     let password = document.getElementById('login-password')
     if (username.value && password.value) {
-        getAccounts().then((result)=>{
-            let account = result.filter(account =>{
-                return account.user.toUpperCase() === username.value.toUpperCase()
-            })
-            if (account.length === 0) {
-                loginError.style.display = 'block'
-                loginError.innerText =`Account '${username.value}' does not exist`
-            } else if (password.value === account[0].password){
-                localStorage.setItem('username',username.value)
-                username.parentNode.parentNode.style.display = 'none'
-                message.style.display = 'flex';
-                message.innerText = `Logged in as ${username.value}`
-                loginError.style.display = 'none'
-                setTimeout(()=>{message.style.display='none'},3000)
-                username = document.getElementById('username')
-                accountButtons.style.display = 'none';
-                loggedIn.style.display = 'block';
-                username.innerText = localStorage.getItem('username')
-            } else {
-                loginError.style.display = 'block'
-                loginError.innerText ='Invalid Password'
-            }
-        })
+        const result = await fetch(`/api/login?username=${username.value}&password=${password.value}`).then(res => res.json()).then(data => data).catch(err => err)
+        if (result.error) {
+            loginError.style.display = 'block'
+            loginError.innerText = result.error
+        } else {
+            username.parentNode.parentNode.style.display = 'none'
+            message.style.display = 'flex';
+            message.innerText = `Logged in as ${username.value}`
+            loginError.style.display = 'none'
+            setTimeout(()=>{message.style.display='none'},3000)
+            localStorage.setItem('username',username.value)
+            username = document.getElementById('username')
+            accountButtons.style.display = 'none';
+            loggedIn.style.display = 'block';
+            username.innerText = localStorage.getItem('username')
+        }
     } else {
         loginError.style.display = 'block'
         loginError.innerText ='Enter username and password'
@@ -95,27 +65,31 @@ signUpButton.addEventListener('click', ()=>{
     page.style.display = 'flex'
 })
 
-createAccountButton.addEventListener('click', ()=>{
+createAccountButton.addEventListener('click', async ()=>{
     let username = document.getElementById('create-username')
     let password = document.getElementById('create-password')
     let confirmPassword = document.getElementById('confirm-password')
     if (username.value && username.value.length < 21 && password.value && confirmPassword.value && password.value === confirmPassword.value){
-        getAccounts().then((result)=>{
-            let usernames = result.filter(account =>account.user.toUpperCase() === username.value.toUpperCase())
-            if (usernames.length > 0) {
-                createAccountError.style.display = 'block'
-                createAccountError.innerText = 'Username already taken'
-            }
-            else {
-                result.push({"user": username.value, "password": password.value})
-                createAccount(JSON.stringify({accounts: result}))
-                username.parentNode.parentNode.style.display = 'none'
-                message.style.display = 'flex';
-                message.innerText = 'Account Created'
-                createAccountError.style.display = 'none'
-                setTimeout(()=>{message.style.display='none'},3000)
-            }
-        })
+        const result = await fetch('/api/signUp', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username:username.value,
+                password:password.value
+            })
+        }).then(res => res.json()).then(data => data).catch(err => err)
+        if (result.error) {
+            createAccountError.style.display = 'block'
+            createAccountError.innerText = result.error
+        } else {
+            username.parentNode.parentNode.style.display = 'none'
+            message.style.display = 'flex';
+            message.innerText = 'Account Created'
+            createAccountError.style.display = 'none'
+            setTimeout(()=>{message.style.display='none'},3000)
+        }
     } else if (username.value.length > 20) {
         createAccountError.style.display = 'block'
         createAccountError.innerText = 'Username too long'
@@ -125,85 +99,20 @@ createAccountButton.addEventListener('click', ()=>{
     }
 })
 
-///get and post
-async function getAccounts() {
-    const result = await octokit.request('GET /gists/{gist_id}', {
-        gist_id: 'f2ebbc31bd13eb014f34a6043912b89f',
-        headers: {
-        'X-GitHub-Api-Version': '2022-11-28'
-        }
-    })
-    return JSON.parse(result.data.files["ad-accounts.json"].content).accounts
-}
-async function createAccount(data) {
-    await octokit.request('PATCH /gists/{gist_id}', {
-        gist_id: 'f2ebbc31bd13eb014f34a6043912b89f',
-        description: 'created account',
-        files: {
-            "ad-accounts.json": {
-                content: data,
-            },
-        },
-        headers: {
-          'X-GitHub-Api-Version': '2022-11-28'
-        }
-      })
-}
-async function getDiscussions() {
-    const result = await octokit.request('GET /gists/{gist_id}', {
-        gist_id: 'f2ebbc31bd13eb014f34a6043912b89f',
-        headers: {
-        'X-GitHub-Api-Version': '2022-11-28'
-        }
-    })
-    let sections = JSON.parse(result.data.files["ad-discussions.json"].content).sections
-    return sections
-}
-async function postDiscussion(data) {
-    await octokit.request('PATCH /gists/{gist_id}', {
-        gist_id: 'f2ebbc31bd13eb014f34a6043912b89f',
-        description: 'created discussion',
-        files: {
-            "ad-discussions.json": {
-                content: data,
-            },
-        },
-        headers: {
-          'X-GitHub-Api-Version': '2022-11-28'
-        }
-      })
-}
-///
+async function discussionInit(){
 
-function discussionInit(){
-    getDiscussions().then((result) => {
-        let generalDiscussion = result[0]
-        let questionDiscussion = result[1]
-        let offTopicDiscussion = result[2]       
-        generalDiscussion.forEach(discussion => {
-            let newDiscussion = new Discussion(discussion.id,discussion.user,discussion.title,discussion.content,discussion.date,document.getElementById('general'))
-            newDiscussion.createDiscussion()
-            discussion.comments.forEach(comment => {
-                let newComment = new Comment(comment.user,comment.date,comment.content,document.getElementById(discussion.id))
-                newComment.createComment()
-            })
-        })
-        questionDiscussion.forEach(discussion => {
-            let newDiscussion = new Discussion(discussion.id,discussion.user,discussion.title,discussion.content,discussion.date,document.getElementById('questions'))
-            newDiscussion.createDiscussion()
-            discussion.comments.forEach(comment => {
-                let newComment = new Comment(comment.user,comment.date,comment.content,document.getElementById(discussion.id))
-                newComment.createComment()
-            })
-        })
-        offTopicDiscussion.forEach(discussion => {
-            let newDiscussion = new Discussion(discussion.id,discussion.user,discussion.title,discussion.content,discussion.date,document.getElementById('offTopic'))
-            newDiscussion.createDiscussion()
-            discussion.comments.forEach(comment => {
-                let newComment = new Comment(comment.user,comment.date,comment.content,document.getElementById(discussion.id))
-                newComment.createComment()
-            })
-        })
+    const discussions = await fetch('/api/getDiscussions').then(res => res.json()).then(data => data)
+
+    discussions.forEach(discussion => {
+        let newDiscussion = new Discussion(discussion.id,discussion.username,discussion.title,discussion.content,discussion.date,discussion.section)
+        newDiscussion.createDiscussion()
+    })
+
+    const comments = await fetch('/api/getComments').then(res => res.json()).then(data => data)
+
+    comments.forEach(comment => {
+        let newComment = new Comment(comment.username,comment.date,comment.content,document.getElementById(comment.discussion_id))
+        newComment.createComment()
     })
 }
 
@@ -255,14 +164,17 @@ class Comment {
         })
     }
     postComment(){
-        getDiscussions().then((result) =>{
-            let discussion
-            for(let i of result){
-                discussion = i.filter(item=>item.id == this.commentSection.id)
-                if (discussion.length) break
-            }
-            discussion[0].comments.push({user: this.user,date:this.date,content: this.commentValue})
-            postDiscussion(JSON.stringify({sections:result}))
+        fetch('/api/addComment', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username:this.user,
+                date:this.date,
+                content:this.commentValue,
+                discussion_id:this.commentSection.id
+            })
         })
     }
 }
@@ -274,7 +186,7 @@ class Discussion {
         this.content = content
         this.user = user
         this.date = date
-        this.forum = forum
+        this.forum = document.getElementById(`${forum}`)
     }
     createDiscussion(){
         if (this.user == null) {this.user = 'Anonymous'}
@@ -329,20 +241,20 @@ class Discussion {
         })
         return details.parentNode.id
     }
-    postDiscussion(topic){
-        getDiscussions().then((result) => {
-            switch (topic) {
-                case 'general':
-                    result[0].push({id: this.id, user: this.user, title: this.title, content: this.content, date: this.date, comments: []})
-                    break;
-                case 'questions':
-                    result[1].push({id: this.id, user: this.user, title: this.title, content: this.content, date: this.date, comments: []})
-                    break;
-                case 'offTopic':
-                    result[2].push({id: this.id, user: this.user, title: this.title, content: this.content, date: this.date, comments: []})
-                    break;
-            }
-            postDiscussion(JSON.stringify({sections:result}))
+    postDiscussion(){
+        console.log(this.content)
+        fetch('/api/addDiscussion', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                username:this.user,
+                section:this.forum.id,
+                title:this.title,
+                date:this.date,
+                content:this.content,
+            })
         })
     }
 }
@@ -363,7 +275,7 @@ Array.from(closeButtons).forEach(button =>{
 postDiscussionButton.addEventListener('click', ()=>{
     let title = document.getElementById('discussion-title').value
     let content = document.getElementById('discussion-body').value
-    let forum = discussionButton.parentNode.parentNode
+    let forum = discussionButton.parentNode.parentNode.id
     let discussion = new Discussion(Number(new Date),localStorage.getItem('username'),title,content,getDate(),forum)
     let topic = discussion.createDiscussion()
     discussion.postDiscussion(topic)

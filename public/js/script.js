@@ -1,13 +1,3 @@
-// github gist api
-import { Octokit } from "https://esm.sh/@octokit/core"
-const one = 'gh'
-const two = 'p_vXCkFfm51w0aCL'
-const three = 'C03jo4636UaDOgVd4ac1Uw'
-const secretKey = one + two + three
-const octokit = new Octokit({
-    auth: secretKey
-});
-
 // buttons and displays
 const canvas = document.getElementById('canvas')
 const ctx = canvas.getContext('2d')
@@ -21,56 +11,20 @@ const startScreen = document.getElementById('start-screen')
 const usernameInput = document.getElementById('username')
 const scoreDisplay = document.getElementById('score')
 const healthDisplay = document.getElementById('health')
-var score = 0, health = 100
+let score = 0, health = 100
 
-///////// get and post scores
-async function getScores() {
-    const result = await octokit.request('GET /gists/{gist_id}', {
-        gist_id: '779fab2e80cc29dd187a82e1ae8fabd8',
-        headers: {
-        'X-GitHub-Api-Version': '2022-11-28'
-        }
+// initialize leaderboard
+async function leaderboardInit(){
+    places.innerHTML = ''
+    const scores = await fetch('/api/getScores').then(res => res.json()).then(scores => scores)
+    scores.forEach(score => {
+        let place = document.createElement('li')
+        place.textContent = `${score.username}: ${score.score}`
+        places.appendChild(place)
     })
-    return JSON.parse(result.data.files.adl.content).scores
 }
 
-async function postScores(data){
-    await octokit.request('PATCH /gists/{gist_id}', {
-        gist_id: '779fab2e80cc29dd187a82e1ae8fabd8',
-        description: 'updated scores',
-        files: {
-            adl: {
-                content: data,
-            },
-        },
-        headers: {
-          'X-GitHub-Api-Version': '2022-11-28'
-        }
-      })
-}
-// event listeners
-usernameInput.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && usernameInput.value && usernameInput.value.length < 11) {
-        startScreen.style.display = 'none'
-        let loop = spawnLoop()
-        animate(loop);
-    }
-})
-playAgainBtn.addEventListener('click', ()=>{
-    health = 100;
-    healthDisplay.innerText = 100
-    title.innerText = 'Astroid Destroyer'
-    score = 0
-    scoreDisplay.innerText = 0
-    playAgainBtn.style.display = 'none'
-    animate()
-})
-pause.addEventListener('click', () => {
-    pause.blur()
-    game.pause = !game.pause
-    game.pause ? pause.innerText = 'Resume' : pause.innerText = 'Pause'
-})
-// functions
+// spawn loop for entities
 function spawnLoop(){
     let loop = setInterval(() => {
         if (health > 0 && !game.pause) {
@@ -81,7 +35,7 @@ function spawnLoop(){
             game.spawnPowerups()
             if (game.boss[0].minions){
                 game.boss[0].minions.forEach(minion => {
-                        if(!minion.delete){minion.shoot()}
+                    if(!minion.delete){minion.shoot()}
                 })
             }
         }
@@ -89,6 +43,7 @@ function spawnLoop(){
     return loop
 }
 
+// animates the game
 function animate(loop){
     if (health <= 0) {
         clearInterval(loop)
@@ -104,21 +59,35 @@ function animate(loop){
         game.update();
         game.draw(ctx)
     }
+    // redraws the canvas with each loop
     requestAnimationFrame(animate)
 }
 
-function leaderboardInit(scores){
-    scores.sort((a,b) => {
-        if (a.score > b.score){return -1}
-        if (b.score < a.score){return 1}
-        return 0
-    })
-    scores.forEach(score => {
-        let place = document.createElement('li')
-        place.textContent = `${score.name}: ${score.score}`
-        places.appendChild(place)
-    })
-}
+// starts game when name is entered
+usernameInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && usernameInput.value && usernameInput.value.length < 11) {
+        startScreen.style.display = 'none'
+        let loop = spawnLoop()
+        animate(loop);
+        leaderboardInit()
+    }
+})
+// play again
+playAgainBtn.addEventListener('click', ()=>{
+    health = 100;
+    healthDisplay.innerText = 100
+    title.innerText = 'Astroid Destroyer'
+    score = 0
+    scoreDisplay.innerText = 0
+    playAgainBtn.style.display = 'none'
+    animate()
+})
+// pause
+pause.addEventListener('click', () => {
+    pause.blur()
+    game.pause = !game.pause
+    game.pause ? pause.innerText = 'Resume' : pause.innerText = 'Pause'
+})
 
 // classes
 class Game {
@@ -135,12 +104,14 @@ class Game {
         this.shield = false
         this.pause = false
     }
+    // updates object properties
     update(){
+        // player
         this.player.update();
-
+        // astroids
         this.astroids.forEach(astroid => {
             astroid.update()
-            if (this.checkCollision(this.player,astroid)){astroid.delete = true;}   
+            if (this.checkCollision(this.player,astroid)){astroid.delete = true}   
 
             this.player.projectiles.forEach(projectile => {
                 if (this.checkCollision(projectile,astroid)){
@@ -152,7 +123,7 @@ class Game {
             })
         })
         this.astroids = this.astroids.filter(astroid => !astroid.delete)
-
+        // powerups
         this.powerups.forEach(powerup => {
             powerup.update()
             if (this.checkCollision(this.player,powerup)){
@@ -182,7 +153,7 @@ class Game {
             }
         })
         this.powerups = this.powerups.filter(powerup => !powerup.delete)
-
+        // boss
         this.boss.forEach(boss => {
             boss.update()
             this.player.projectiles.forEach(projectile =>{
@@ -191,6 +162,7 @@ class Game {
                     projectile.delete = true
                 }
             })
+            // boss minions
             boss.minions.forEach(minion =>{
                 this.player.projectiles.forEach(projectile =>{
                     if (game.checkCollision(projectile,minion)){
@@ -202,12 +174,14 @@ class Game {
         })
         this.boss = this.boss.filter(boss => !boss.delete)
     }
+    // draws objects on canvas with updated properties
     draw(context){
         this.player.draw(context);
-        this.astroids.forEach(astroid => {astroid.draw(context)})
-        this.powerups.forEach(powerup => {powerup.draw(context)})
-        this.boss.forEach(boss => {boss.draw(context)})
+        this.astroids.forEach(astroid => astroid.draw(context))
+        this.powerups.forEach(powerup => powerup.draw(context))
+        this.boss.forEach(boss => boss.draw(context))
     }
+    // spawns astroids
     spawnAstroids(){
         for (let i =0; i< Math.random() * 6 + 5; i++){
             setTimeout(() => 
@@ -215,33 +189,32 @@ class Game {
             }, i * 500)
         }
     }
+    // spawns powerups
     spawnPowerups(){
         let rng = Math.floor(Math.random() * 100)
         if (rng < 26) {this.powerups.push(new Powerups(this))}
     }
+    // spawns boss
     spawnBoss(){
         let rng = Math.floor(Math.random() * 100)
         if (rng < 6) {this.boss.push(new Boss(this))}
     }
+    // checks for collision
     checkCollision(rect1, rect2){
+    // checks if the two rectangles are overlapping
         return (rect1.x < rect2.x + rect2.width &&
                 rect1.x + rect1.width > rect2.x &&
                 rect1.y < rect2.y + rect2.height &&
                 rect1.height + rect1.y > rect2.y)
     }
+    // adds score to leaderboard
     leaderboard(){
-        getScores().then((scores) => {
-            scores.push({
-                name: usernameInput.value,
-                score: score
-            })
-            const data = JSON.stringify({scores: scores})
-            postScores(data)
+        fetch('/api/addScore',{
+            method: "POST",
+            headers: {"Content-Type": "application/json"},
+            body: JSON.stringify({username: usernameInput.value, score: score})
         })
-
-        let place = document.createElement('li')
-        place.textContent = `${usernameInput.value}: ${score}`
-        places.appendChild(place)
+        leaderboardInit()
     }
 }
 
@@ -258,25 +231,28 @@ class Player {
         this.image = document.getElementById('player')
         this.x2shot = false
     }
+    // updates player properties
     update() {
+        // movement
         if (this.game.keys.includes('ArrowUp')) this.speedY = -this.maxSpeed
         else if (this.game.keys.includes('ArrowDown')) this.speedY = this.maxSpeed
         else this.speedY = 0
-        this.y += this.speedY;
-
-        this.projectiles.forEach(projectile => {projectile.update()})
+        this.y += this.speedY
+        // update projectiles
+        this.projectiles.forEach(projectile => projectile.update())
         this.projectiles = this.projectiles.filter(projectile => !projectile.delete)
     }
+    // draws player and projectiles
     draw(context){
         context.fillStyle = 'rgba(255,255,255,0.0)'
         context.fillRect(this.x,this.y,this.width,this.height)
         context.drawImage(this.image, this.x, this.y)
-        this.projectiles.forEach(projectile => {
-            projectile.draw(context)
-        })
+        this.projectiles.forEach(projectile => projectile.draw(context))
     }
+    // shoots projectiles
     shoot(){
         this.projectiles.push(new Projectile(this.game, this, 'straight'))
+        // x2shot powerup
         if (this.x2shot) {
             this.projectiles.push(new Projectile(this.game, this, 'up'))
             this.projectiles.push(new Projectile(this.game, this, 'down'))
@@ -288,17 +264,16 @@ class InputHandler {
     constructor(game){
         this.game = game;
         window.addEventListener('keydown', e => {
-            if((
-                (e.key === 'ArrowUp') ||
-                (e.key === 'ArrowDown')
-            )
+            // prevents multiple key presses from being added to the array
+            if(((e.key === 'ArrowUp') || (e.key === 'ArrowDown'))
                 && this.game.keys.indexOf(e.key)===-1) {
-                this.game.keys.push(e.key)
+                    this.game.keys.push(e.key)
             }
             else if (e.key === ' ') {this.game.player.shoot()}
         })
+        // removes key presses from the array
         window.addEventListener('keyup', e => {
-            if (this.game.keys.indexOf(e.key) > -1){
+            if (this.game.keys.indexOf(e.key) > -1) {
                 this.game.keys.splice(this.game.keys.indexOf(e.key), 1)
             }
         })
@@ -316,6 +291,7 @@ class Projectile {
         this.direction = direction
         this.delete = false;
     }
+    // updates projectile properties
     update(){
         this.x += this.speed
         switch (this.direction) {
@@ -327,8 +303,8 @@ class Projectile {
                 break;
         }
         if (this.x > this.game.width * 0.8) this.delete = true;
-        
     }
+    // draws projectile
     draw(context){
         context.fillStyle = 'red'
         context.fillRect(this.x, this.y, this.width, this.height)
@@ -344,19 +320,23 @@ class Astroid {
         this.x = this.game.width
         this.y = Math.random() * (this.game.height - this.height)
         this.speed = 5
-        this.healthDecrement = 5
+        this.healthDecrement = 10
         this.delete = false
     }
     update(){
+        // moves astroid to the left
         this.x -= this.speed
+        // checks for collision with edge of canvas
         if (this.x <= 0) {
             this.delete = true;
+            // decrements health if astroid reaches edge of canvas
             if (!this.game.shield){
                 health -= this.healthDecrement
                 healthDisplay.innerText = health
             }   
         }
     }
+    // draws astroid
     draw(context){
         context.fillStyle = 'rgba(255,255,255,0.0)'
         context.fillRect(this.x,this.y,this.width,this.height)
@@ -384,21 +364,26 @@ class Boss {
             scoreDisplay.innerText = score
             this.delete = true;
         }
-        if (this.y >= this.game.height -this.height || this.y <= 0) this.speedY *= -1
+        // moves boss up and down
+        if (this.y >= this.game.height -this.height || this.y <= 0) {this.speedY *= -1}
         this.y += this.speedY
+        // spawns minions if none are present and cooldown is false
         if(!this.minions.length&&this.cooldown == false){
             this.cooldown = true
-            setTimeout(()=>{this.spawnMinions();},15000)
+            setTimeout(()=>{this.spawnMinions()},15000)
         }
-        this.minions.forEach(minion =>{minion.update()})
+        // updates minions
+        this.minions.forEach(minion =>minion.update())
         this.minions = this.minions.filter(minion => !minion.delete)
     }
+    // draws boss and minions
     draw(context){
         context.fillStyle = 'rgba(255,255,255,0)'
         context.fillRect(this.x,this.y,this.width,this.height)
         context.drawImage(this.image, this.x, this.y)
         this.minions.forEach(minion =>{minion.draw(context)})
     }
+    // spawns minions
     spawnMinions(){
         this.cooldown = false
         for (let i =0; i < 4; i++){
@@ -426,6 +411,7 @@ class Minion {
             scoreDisplay.innerText = score
             this.delete = true;
         }
+        // moves minion up and down
         if (this.y >= this.game.height -this.height || this.y <= 0) this.speedY *= -1
         this.y += this.speedY
     }
@@ -434,6 +420,7 @@ class Minion {
         context.fillRect(this.x,this.y,this.width,this.height)
         context.drawImage(this.image, this.x, this.y)
     }
+    // shoots astroids
     shoot(){
         let astroid = new Astroid(this.game)
         astroid.x = this.x
@@ -447,6 +434,7 @@ class Powerups {
     constructor(game){
         this.game = game;
         this.poweruplist = ['hp','speedboost','x2score','shield','x2shot']
+        // randomly selects a powerup from the list
         this.powerup = this.poweruplist[Math.floor(Math.random() * 5)]
         this.x = game.width;
         this.width = 50;
@@ -457,7 +445,7 @@ class Powerups {
     }
     update(){
         this.x -= this.speed
-        if (this.x <= 0) {this.delete = true;}
+        if (this.x <= 0) this.delete = true;
     }
     draw(context){
         context.fillStyle = 'rgba(255,255,255,0.0)'
@@ -467,5 +455,3 @@ class Powerups {
 }
 
 const game = new Game(CANVAS_WIDTH, CANVAS_HEIGHT)
-
-getScores().then((scores)=>{leaderboardInit(scores)})
