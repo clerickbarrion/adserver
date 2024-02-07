@@ -2,7 +2,6 @@ const express = require('express');
 const app = express();
 const port = 3000;
 const path = require('path');
-const fetch = require('node-fetch');
 const database = require('./utils/database.js');
 
 
